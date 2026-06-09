@@ -304,8 +304,8 @@
       <select class="filter-select" id="dash-year"  onchange="renderDashboard()"></select>
       <select class="filter-select" id="dash-user"  onchange="renderDashboard()">
         <option value="todos">👥 Todos</option>
-        <option value="user1" id="opt-user1-dash">Você</option>
-        <option value="user2" id="opt-user2-dash">Marido</option>
+        <option value="user1" id="opt-user1-dash">Alice</option>
+        <option value="user2" id="opt-user2-dash">Dudu</option>
       </select>
     </div>
   </div>
@@ -395,8 +395,8 @@
         <label class="form-label">Quem recebeu</label>
         <select class="form-select" id="g-user">
           <option value="casal">👥 Casal / Dividido</option>
-          <option value="user1" id="opt-user1-g">Você</option>
-          <option value="user2" id="opt-user2-g">Marido</option>
+          <option value="user1" id="opt-user1-g">Alice</option>
+          <option value="user2" id="opt-user2-g">Dudu</option>
         </select>
       </div>
     </div>
@@ -418,8 +418,8 @@
     <select class="filter-select" id="g-user-f" onchange="renderGanhos()">
       <option value="todos">👥 Todos</option>
       <option value="casal">Casal</option>
-      <option value="user1" id="opt-user1-gf">Você</option>
-      <option value="user2" id="opt-user2-gf">Marido</option>
+      <option value="user1" id="opt-user1-gf">Alice</option>
+      <option value="user2" id="opt-user2-gf">Dudu</option>
     </select>
     <select class="filter-select" id="g-pay-f" onchange="renderGanhos()">
       <option value="todos">Todas as formas</option>
@@ -485,8 +485,8 @@
           <label class="form-label">Quem gastou</label>
           <select class="form-select" id="f-user">
             <option value="casal">👥 Casal / Dividido</option>
-            <option value="user1" id="opt-user1-f">Você</option>
-            <option value="user2" id="opt-user2-f">Marido</option>
+            <option value="user1" id="opt-user1-f">Alice</option>
+            <option value="user2" id="opt-user2-f">Dudu</option>
           </select>
         </div>
         <div class="form-group">
@@ -534,8 +534,8 @@
           <label class="form-label">Quem investiu</label>
           <select class="form-select" id="i-user">
             <option value="casal">👥 Casal / Dividido</option>
-            <option value="user1" id="opt-user1-i">Você</option>
-            <option value="user2" id="opt-user2-i">Marido</option>
+            <option value="user1" id="opt-user1-i">Alice</option>
+            <option value="user2" id="opt-user2-i">Dudu</option>
           </select>
         </div>
       </div>
@@ -550,8 +550,8 @@
     <select class="filter-select" id="t-user"  onchange="renderGastos()">
       <option value="todos">👥 Todos</option>
       <option value="casal">Casal</option>
-      <option value="user1" id="opt-user1-t">Você</option>
-      <option value="user2" id="opt-user2-t">Marido</option>
+      <option value="user1" id="opt-user1-t">Alice</option>
+      <option value="user2" id="opt-user2-t">Dudu</option>
     </select>
     <select class="filter-select" id="t-tipo" onchange="renderGastos()">
       <option value="todos">Gastos + Invest.</option>
@@ -607,7 +607,7 @@
     <div class="settings-title">👤 Nomes dos Usuários</div>
     <div class="settings-row">
       <div class="form-group" style="flex:1;min-width:160px"><label class="form-label">Seu nome</label><input type="text" class="form-input" id="cfg-user1" placeholder="Ex: Ana"></div>
-      <div class="form-group" style="flex:1;min-width:160px"><label class="form-label">Nome do marido</label><input type="text" class="form-input" id="cfg-user2" placeholder="Ex: Carlos"></div>
+      <div class="form-group" style="flex:1;min-width:160px"><label class="form-label">Nome do Dudu</label><input type="text" class="form-input" id="cfg-user2" placeholder="Ex: Carlos"></div>
       <button class="btn-sm" style="margin-bottom:1px" onclick="saveNames()">💾 Salvar Nomes</button>
     </div>
   </div>
@@ -664,8 +664,8 @@
       <div class="form-group"><label class="form-label">Titular</label>
         <select class="form-select" id="inv-owner">
           <option value="casal">Casal</option>
-          <option value="user1" id="opt-user1-inv">Você</option>
-          <option value="user2" id="opt-user2-inv">Marido</option>
+          <option value="user1" id="opt-user1-inv">Alice</option>
+          <option value="user2" id="opt-user2-inv">Dudu</option>
         </select>
       </div>
     </div>
@@ -778,11 +778,11 @@ let transactions = load('fin_transactions',[]);
 let investments  = load('fin_investments',[]);
 let categories   = load('fin_categories', DEFAULT_CATEGORIES);
 let quickCats    = load('fin_quick_cats',['supermercado','restaurante','transporte','hortifruti','casa','lazer']);
-let settings     = load('fin_settings',{user1:'Você',user2:'Marido'});
+let settings     = load('fin_settings',{user1:'Alice',user2:'Dudu'});
 
 function fmt(v){ return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function catById(id){ return categories.find(c=>c.id===id)||{name:id,icon:'📦'}; }
-function userName(uid){ if(uid==='casal')return '👥 Casal'; if(uid==='user1')return settings.user1||'Você'; if(uid==='user2')return settings.user2||'Marido'; return uid; }
+function userName(uid){ if(uid==='casal')return '👥 Casal'; if(uid==='user1')return settings.user1||'Alice'; if(uid==='user2')return settings.user2||'Dudu'; return uid; }
 function monthName(m){ return ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][m-1]; }
 
 function getYears(){
@@ -1237,8 +1237,8 @@ function renderSettings(){
 }
 
 function saveNames(){
-  settings.user1=document.getElementById('cfg-user1').value.trim()||'Você';
-  settings.user2=document.getElementById('cfg-user2').value.trim()||'Marido';
+  settings.user1=document.getElementById('cfg-user1').value.trim()||'Alice';
+  settings.user2=document.getElementById('cfg-user2').value.trim()||'Dudu';
   save('fin_settings',settings); updateUserNames(); showToast('Nomes salvos! ✅');
 }
 

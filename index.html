@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>💰 Finanças do Casal</title>
+<title>💰 Finanças do Casal (Nuvem)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -27,7 +27,6 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html, body { overflow-x: hidden; }
 
   body {
@@ -178,11 +177,9 @@
   .pay-btn.active-pix      { background: rgba(6,182,212,.15);  border-color: var(--cyan);   color: var(--cyan); }
   .pay-btn.active-credito  { background: rgba(108,99,255,.15); border-color: var(--accent); color: var(--accent2); }
 
-  /* ── PARCELAS (shown only for credito) ── */
   .parcelas-row { display: none; }
   .parcelas-row.show { display: flex; flex-direction: column; gap: 5px; }
 
-  /* ── PAY BADGE ── */
   .pay-badge {
     display: inline-flex; align-items: center; gap: 3px;
     padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; white-space: nowrap;
@@ -280,16 +277,24 @@
   .cat-item .cat-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0; margin-left: 4px; }
   .cat-item .cat-del:hover { color: var(--red); }
 
-  /* ── TOAST ── */
+  /* ── TOAST / LOADING ── */
   .toast {
     position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
     background: var(--surface3); border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 10px 20px; font-size: 13px; font-weight: 600;
-    opacity: 0; transition: all .3s; z-index: 999; white-space: nowrap;
+    opacity: 0; transition: all .3s; z-index: 999; white-space: nowrap; pointer-events: none;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.success { border-color: var(--green); color: var(--green); }
   .toast.error   { border-color: var(--red);   color: var(--red); }
+
+  .loading-overlay {
+    position: fixed; inset: 0; background: var(--bg); display: flex;
+    flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+    transition: opacity .3s; gap: 12px;
+  }
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── MODAL ── */
   .modal-overlay {
@@ -304,12 +309,9 @@
   .modal-title   { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
   .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
 
-  /* ── EMPTY STATE ── */
   .empty-state { text-align: center; padding: 40px 16px; color: var(--muted); }
   .empty-icon  { font-size: 40px; margin-bottom: 10px; }
   .empty-text  { font-size: 13px; }
-
-  /* ── LEGEND ── */
   .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
   .legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -319,34 +321,24 @@
     .sidebar    { display: none; }
     .mobile-nav { display: block; }
     .mobile-header { display: flex; align-items: center; justify-content: space-between; }
-
-    .main {
-      margin-left: 0;
-      padding: 12px 12px 80px;
-      max-width: 100vw;
-    }
-
+    .main { margin-left: 0; padding: 12px 12px 80px; max-width: 100vw; }
     .page-title   { font-size: 18px; }
     .page-header  { margin-bottom: 14px; }
-
     .cards-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
     .card { padding: 12px; }
     .card-value { font-size: 16px; }
     .card-label { font-size: 9px; }
-
     .charts-grid { grid-template-columns: 1fr; gap: 12px; }
     .form-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
     .form-card { padding: 14px; }
     .pay-btn { font-size: 12px; padding: 9px 4px; min-width: 0; }
     .toast { bottom: 90px; }
-
     .col-cat, .col-type, .col-who, .col-parc { display: none; }
     .col-date { width: 72px; }
     .col-val  { width: 90px; }
     .col-pay  { width: 80px; }
     .col-del  { width: 32px; }
     .transactions-table td { white-space: normal; word-break: break-word; }
-
     .invest-grid { grid-template-columns: 1fr; }
     .filter-bar { gap: 6px; }
     .filter-select, .filter-input { font-size: 12px; padding: 7px 8px; }
@@ -356,16 +348,20 @@
     .cards-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
     .form-grid  { grid-template-columns: 1fr; }
   }
-
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 </style>
 </head>
 <body>
+
+<div class="loading-overlay" id="loading-screen">
+  <div class="spinner"></div>
+  <div style="font-weight:600;font-size:13px;color:var(--muted)">Sincronizando com o Firebase...</div>
+</div>
+
 <div class="app">
 
-<!-- ── SIDEBAR (desktop) ── -->
 <nav class="sidebar">
   <div class="logo">💰 <span>Finanças</span> Casal</div>
   <div class="nav-item active"  onclick="showPage('dashboard')">    <span class="nav-icon">📊</span> Dashboard</div>
@@ -376,13 +372,8 @@
 </nav>
 
 <main class="main">
+<div class="mobile-header"><span id="mobile-page-title">📊 Dashboard</span></div>
 
-<!-- Mobile header -->
-<div class="mobile-header">
-  <span id="mobile-page-title">📊 Dashboard</span>
-</div>
-
-<!-- ══════════ DASHBOARD ══════════ -->
 <div id="page-dashboard" class="page active">
   <div class="page-header">
     <div>
@@ -401,100 +392,44 @@
   </div>
 
   <div class="cards-grid">
-    <div class="card green">
-      <div class="card-label">💚 Ganhos</div>
-      <div class="card-value green" id="card-ganhos">R$ 0,00</div>
-      <div class="card-sub" id="card-ganhos-n">0 lançamentos</div>
-    </div>
-    <div class="card red">
-      <div class="card-label">🔴 Gastos</div>
-      <div class="card-value red" id="card-gastos">R$ 0,00</div>
-      <div class="card-sub" id="card-gastos-n">0 lançamentos</div>
-    </div>
-    <div class="card gold">
-      <div class="card-label">🟡 Investido</div>
-      <div class="card-value gold" id="card-invest">R$ 0,00</div>
-      <div class="card-sub" id="card-invest-n">0 lançamentos</div>
-    </div>
-    <div class="card accent">
-      <div class="card-label">💜 Saldo</div>
-      <div class="card-value accent" id="card-saldo">R$ 0,00</div>
-      <div class="card-sub" id="card-saldo-pct">—</div>
-    </div>
+    <div class="card green"><div class="card-label">💚 Ganhos</div><div class="card-value green" id="card-ganhos">R$ 0,00</div><div class="card-sub" id="card-ganhos-n">0 lançamentos</div></div>
+    <div class="card red"><div class="card-label">🔴 Gastos</div><div class="card-value red" id="card-gastos">R$ 0,00</div><div class="card-sub" id="card-gastos-n">0 lançamentos</div></div>
+    <div class="card gold"><div class="card-label">🟡 Investido</div><div class="card-value gold" id="card-invest">R$ 0,00</div><div class="card-sub" id="card-invest-n">0 lançamentos</div></div>
+    <div class="card accent"><div class="card-label">💜 Saldo</div><div class="card-value accent" id="card-saldo">R$ 0,00</div><div class="card-sub" id="card-saldo-pct">—</div></div>
   </div>
 
   <div class="charts-grid">
-    <div class="chart-card">
-      <div class="chart-title">🍕 Gastos por Categoria</div>
-      <canvas id="chart-cat"></canvas>
-      <div class="legend" id="legend-cat"></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">📈 Evolução Mensal</div>
-      <canvas id="chart-evo"></canvas>
-    </div>
+    <div class="chart-card"><div class="chart-title">🍕 Gastos por Categoria</div><canvas id="chart-cat"></canvas><div class="legend" id="legend-cat"></div></div>
+    <div class="chart-card"><div class="chart-title">📈 Evolução Mensal</div><canvas id="chart-evo"></canvas></div>
   </div>
 
-  <div class="chart-card" style="margin-bottom:16px">
-    <div class="chart-title">💳 Gastos por Forma de Pagamento</div>
-    <div id="pay-breakdown"></div>
-  </div>
-
-  <div class="chart-card" style="margin-bottom:16px">
-    <div class="chart-title">🏆 Top Categorias do Mês</div>
-    <div id="top-cats"></div>
-  </div>
+  <div class="chart-card" style="margin-bottom:16px"><div class="chart-title">💳 Gastos por Forma de Pagamento</div><div id="pay-breakdown"></div></div>
+  <div class="chart-card" style="margin-bottom:16px"><div class="chart-title">🏆 Top Categorias do Mês</div><div id="top-cats"></div></div>
 
   <div class="form-card" style="padding:16px">
     <div class="form-title" style="margin-bottom:12px">🕐 Últimas Transações</div>
     <div class="transactions-wrap">
       <table class="transactions-table">
-        <colgroup>
-          <col class="col-date"><col class="col-desc"><col class="col-cat">
-          <col class="col-type"><col class="col-pay"><col class="col-val"><col class="col-who">
-        </colgroup>
-        <thead><tr>
-          <th class="col-date">Data</th>
-          <th class="col-desc">Descrição</th>
-          <th class="col-cat">Categoria</th>
-          <th class="col-type">Tipo</th>
-          <th class="col-pay">Pagamento</th>
-          <th class="col-val">Valor</th>
-          <th class="col-who">Quem</th>
-        </tr></thead>
+        <colgroup><col class="col-date"><col class="col-desc"><col class="col-cat"><col class="col-type"><col class="col-pay"><col class="col-val"><col class="col-who"></colgroup>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Pagamento</th><th>Valor</th><th>Quem</th></tr></thead>
         <tbody id="dash-recent-body"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══════════ GANHOS ══════════ -->
 <div id="page-ganhos" class="page">
-  <div class="page-header">
-    <div><div class="page-title">Ganhos</div><div class="page-subtitle">Registre suas receitas</div></div>
-  </div>
-
+  <div class="page-header"><div><div class="page-title">Ganhos</div><div class="page-subtitle">Registre suas receitas</div></div></div>
   <div class="form-card">
     <div class="form-title">💚 Registrar Ganho</div>
     <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">Data</label>
-        <input type="date" class="form-input" id="g-data">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Valor (R$)</label>
-        <input type="text" inputmode="decimal" class="form-input" id="g-valor" placeholder="0,00">
-      </div>
-      <div class="form-group" style="grid-column:span 2">
-        <label class="form-label">Descrição</label>
-        <input type="text" class="form-input" id="g-desc" placeholder="Ex: Salário, Freela, Venda…">
-      </div>
+      <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="g-data"></div>
+      <div class="form-group"><label class="form-label">Valor (R$)</label><input type="text" inputmode="decimal" class="form-input" id="g-valor" placeholder="0,00"></div>
+      <div class="form-group" style="grid-column:span 2"><label class="form-label">Descrição</label><input type="text" class="form-input" id="g-desc" placeholder="Ex: Salário, Freela…"></div>
       <div class="form-group">
         <label class="form-label">Quem recebeu</label>
         <select class="form-select" id="g-user">
-          <option value="casal">👥 Casal / Dividido</option>
-          <option value="user1">Alice</option>
-          <option value="user2">Dudu</option>
+          <option value="casal">👥 Casal / Dividido</option><option value="user1">Alice</option><option value="user2">Dudu</option>
         </select>
       </div>
     </div>
@@ -509,21 +444,11 @@
     <button class="btn-primary green-btn" onclick="addGanho()">💚 Registrar Ganho</button>
   </div>
 
-  <!-- Filters -->
   <div class="filter-bar">
     <select class="filter-select" id="g-month" onchange="renderGanhos()"></select>
     <select class="filter-select" id="g-year"  onchange="renderGanhos()"></select>
-    <select class="filter-select" id="g-user-f" onchange="renderGanhos()">
-      <option value="todos">👥 Todos</option>
-      <option value="casal">Casal</option>
-      <option value="user1">Alice</option>
-      <option value="user2">Dudu</option>
-    </select>
-    <select class="filter-select" id="g-pay-f" onchange="renderGanhos()">
-      <option value="todos">Todas as formas</option>
-      <option value="dinheiro">💵 Dinheiro</option>
-      <option value="pix">⚡ PIX</option>
-    </select>
+    <select class="filter-select" id="g-user-f" onchange="renderGanhos()"><option value="todos">👥 Todos</option><option value="casal">Casal</option><option value="user1">Alice</option><option value="user2">Dudu</option></select>
+    <select class="filter-select" id="g-pay-f" onchange="renderGanhos()"><option value="todos">Todas as formas</option><option value="dinheiro">💵 Dinheiro</option><option value="pix">⚡ PIX</option></select>
     <input type="text" class="filter-input" id="g-search" placeholder="🔍 Buscar…" oninput="renderGanhos()" style="min-width:120px">
   </div>
 
@@ -531,55 +456,29 @@
     <div class="transactions-wrap">
       <table class="transactions-table">
         <colgroup><col class="col-date"><col class="col-desc"><col class="col-pay"><col class="col-val"><col class="col-who"><col class="col-del"></colgroup>
-        <thead><tr>
-          <th class="col-date">Data</th>
-          <th class="col-desc">Descrição</th>
-          <th class="col-pay">Recebimento</th>
-          <th class="col-val">Valor</th>
-          <th class="col-who">Quem</th>
-          <th class="col-del"></th>
-        </tr></thead>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Recebimento</th><th>Valor</th><th>Quem</th><th></th></tr></thead>
         <tbody id="g-body"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══════════ GASTOS ══════════ -->
 <div id="page-gastos" class="page">
-  <div class="page-header">
-    <div><div class="page-title">Gastos</div><div class="page-subtitle">Registre suas despesas</div></div>
-  </div>
-
+  <div class="page-header"><div><div class="page-title">Gastos</div><div class="page-subtitle">Registre suas despesas</div></div></div>
   <div class="form-card">
     <div class="form-title">🔴 Registrar Gasto</div>
     <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">Data</label>
-        <input type="date" class="form-input" id="f-data">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Valor (R$)</label>
-        <input type="text" inputmode="decimal" class="form-input" id="f-valor" placeholder="0,00">
-      </div>
-      <div class="form-group" style="grid-column:span 2">
-        <label class="form-label">Descrição</label>
-        <input type="text" class="form-input" id="f-desc" placeholder="Ex: Feira da semana">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Categoria</label>
-        <select class="form-select" id="f-cat"></select>
-      </div>
+      <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="f-data"></div>
+      <div class="form-group"><label class="form-label">Valor (R$)</label><input type="text" inputmode="decimal" class="form-input" id="f-valor" placeholder="0,00"></div>
+      <div class="form-group" style="grid-column:span 2"><label class="form-label">Descrição</label><input type="text" class="form-input" id="f-desc" placeholder="Ex: Feira da semana"></div>
+      <div class="form-group"><label class="form-label">Categoria</label><select class="form-select" id="f-cat"></select></div>
       <div class="form-group">
         <label class="form-label">Quem gastou</label>
         <select class="form-select" id="f-user">
-          <option value="casal">👥 Casal / Dividido</option>
-          <option value="user1">Alice</option>
-          <option value="user2">Dudu</option>
+          <option value="casal">👥 Casal / Dividido</option><option value="user1">Alice</option><option value="user2">Dudu</option>
         </select>
       </div>
     </div>
-
     <div class="form-group" style="margin-bottom:14px">
       <label class="form-label">Forma de Pagamento</label>
       <div class="pay-selector">
@@ -589,143 +488,70 @@
       </div>
       <input type="hidden" id="f-pagamento" value="dinheiro">
     </div>
-
-    <!-- Parcelas — só visível quando crédito -->
     <div class="form-group parcelas-row" id="parcelas-row" style="margin-bottom:14px">
       <label class="form-label">Parcelas</label>
       <select class="form-select" id="f-parcelas" style="max-width:200px">
-        <option value="1">À vista / 1x</option>
-        <option value="2">2x</option><option value="3">3x</option>
-        <option value="4">4x</option><option value="5">5x</option>
-        <option value="6">6x</option><option value="8">8x</option>
-        <option value="10">10x</option><option value="12">12x</option>
+        <option value="1">À vista / 1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="8">8x</option><option value="10">10x</option><option value="12">12x</option>
       </select>
     </div>
-
     <button class="btn-primary" onclick="addGasto()">➕ Registrar Gasto</button>
   </div>
 
-  <!-- Filters gastos -->
   <div class="filter-bar">
     <select class="filter-select" id="t-month" onchange="renderGastos()"></select>
     <select class="filter-select" id="t-year"  onchange="renderGastos()"></select>
-    <select class="filter-select" id="t-user-f"  onchange="renderGastos()">
-      <option value="todos">👥 Todos</option>
-      <option value="casal">Casal</option>
-      <option value="user1">Alice</option>
-      <option value="user2">Dudu</option>
-    </select>
-    <select class="filter-select" id="t-cat" onchange="renderGastos()">
-      <option value="todas">Todas as categorias</option>
-    </select>
-    <select class="filter-select" id="t-pay" onchange="renderGastos()">
-      <option value="todos">Todas as formas</option>
-      <option value="dinheiro">💵 Dinheiro</option>
-      <option value="pix">⚡ PIX</option>
-      <option value="credito">💳 Crédito</option>
-    </select>
+    <select class="filter-select" id="t-user-f" onchange="renderGastos()"><option value="todos">👥 Todos</option><option value="casal">Casal</option><option value="user1">Alice</option><option value="user2">Dudu</option></select>
+    <select class="filter-select" id="t-cat" onchange="renderGastos()"><option value="todas">Todas as categorias</option></select>
+    <select class="filter-select" id="t-pay" onchange="renderGastos()"><option value="todos">Todas as formas</option><option value="dinheiro">💵 Dinheiro</option><option value="pix">⚡ PIX</option><option value="credito">💳 Crédito</option></select>
     <input type="text" class="filter-input" id="t-search" placeholder="🔍 Buscar…" oninput="renderGastos()" style="min-width:120px">
   </div>
 
   <div class="form-card" style="padding:0;overflow:hidden">
     <div class="transactions-wrap">
       <table class="transactions-table">
-        <colgroup>
-          <col class="col-date"><col class="col-desc"><col class="col-cat">
-          <col class="col-type"><col class="col-parc"><col class="col-pay">
-          <col class="col-val"><col class="col-who"><col class="col-del">
-        </colgroup>
-        <thead><tr>
-          <th class="col-date">Data</th>
-          <th class="col-desc">Descrição</th>
-          <th class="col-cat">Categoria</th>
-          <th class="col-type">Tipo</th>
-          <th class="col-parc">Parcela</th>
-          <th class="col-pay">Pagamento</th>
-          <th class="col-val">Valor</th>
-          <th class="col-who">Quem</th>
-          <th class="col-del"></th>
-        </tr></thead>
+        <colgroup><col class="col-date"><col class="col-desc"><col class="col-cat"><col class="col-type"><col class="col-parc"><col class="col-pay"><col class="col-val"><col class="col-who"><col class="col-del"></colgroup>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Parcela</th><th>Pagamento</th><th>Valor</th><th>Quem</th><th></th></tr></thead>
         <tbody id="t-body"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══════════ INVESTIMENTOS ══════════ -->
 <div id="page-investimentos" class="page">
-  <div class="page-header">
-    <div><div class="page-title">Investimentos</div><div class="page-subtitle">Acompanhe seu patrimônio</div></div>
-    <button class="btn-sm" onclick="openInvestModal()">➕ Nova Posição</button>
-  </div>
+  <div class="page-header"><div><div class="page-title">Investimentos</div><div class="page-subtitle">Acompanhe seu patrimônio</div></div><button class="btn-sm" onclick="openInvestModal()">➕ Nova Posição</button></div>
   <div class="cards-grid" style="max-width:500px">
-    <div class="card gold">
-      <div class="card-label">💰 Patrimônio Total</div>
-      <div class="card-value gold" id="inv-total">R$ 0,00</div>
-    </div>
-    <div class="card accent">
-      <div class="card-label">📊 Posições</div>
-      <div class="card-value accent" id="inv-count">0</div>
-    </div>
+    <div class="card gold"><div class="card-label">💰 Patrimônio Total</div><div class="card-value gold" id="inv-total">R$ 0,00</div></div>
+    <div class="card accent"><div class="card-label">📊 Posições</div><div class="card-value accent" id="inv-count">0</div></div>
   </div>
-
-  <!-- Aporte rápido -->
   <div class="form-card">
     <div class="form-title">🟡 Registrar Aporte</div>
     <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">Data</label>
-        <input type="date" class="form-input" id="i-data">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Valor (R$)</label>
-        <input type="text" inputmode="decimal" class="form-input" id="i-valor" placeholder="0,00">
-      </div>
-      <div class="form-group" style="grid-column:span 2">
-        <label class="form-label">Descrição</label>
-        <input type="text" class="form-input" id="i-desc" placeholder="Ex: Aporte Tesouro Direto">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Quem investiu</label>
-        <select class="form-select" id="i-user">
-          <option value="casal">👥 Casal / Dividido</option>
-          <option value="user1">Alice</option>
-          <option value="user2">Dudu</option>
-        </select>
-      </div>
+      <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="i-data"></div>
+      <div class="form-group"><label class="form-label">Valor (R$)</label><input type="text" inputmode="decimal" class="form-input" id="i-valor" placeholder="0,00"></div>
+      <div class="form-group" style="grid-column:span 2"><label class="form-label">Descrição</label><input type="text" class="form-input" id="i-desc" placeholder="Ex: Aporte Tesouro Direto"></div>
+      <div class="form-group"><label class="form-label">Quem investiu</label><select class="form-select" id="i-user"><option value="casal">👥 Casal / Dividido</option><option value="user1">Alice</option><option value="user2">Dudu</option></select></div>
     </div>
     <button class="btn-primary gold-btn" onclick="addInvestTx()">🟡 Registrar Aporte</button>
   </div>
-
   <div class="invest-grid" id="invest-list"></div>
 </div>
 
-<!-- ══════════ CONFIGURAÇÕES ══════════ -->
 <div id="page-configuracoes" class="page">
   <div class="page-header"><div><div class="page-title">Configurações</div><div class="page-subtitle">Personalize a ferramenta</div></div></div>
-
   <div class="settings-section">
     <div class="settings-title">🏷️ Categorias</div>
     <div class="settings-row">
-      <div class="form-group" style="flex:1;min-width:160px">
-        <label class="form-label">Nova categoria</label>
-        <input type="text" class="form-input" id="cfg-new-cat" placeholder="Ex: Pets 🐶">
-      </div>
+      <div class="form-group" style="flex:1;min-width:160px"><label class="form-label">Nova categoria</label><input type="text" class="form-input" id="cfg-new-cat" placeholder="Ex: Pets 🐶"></div>
       <button class="btn-sm" style="margin-bottom:1px" onclick="addCategory()">➕ Adicionar</button>
     </div>
     <div class="cat-list" id="cat-list"></div>
   </div>
-
-  <div class="settings-section">
-    <div class="settings-title">🗑️ Zona de Perigo</div>
-    <button class="btn-sm danger" onclick="clearData()">Apagar todos os dados</button>
-  </div>
+  <div class="settings-section"><div class="settings-title">🗑️ Zona de Perigo</div><button class="btn-sm danger" onclick="clearData()">Apagar todos os dados da Nuvem</button></div>
 </div>
 
 </main>
 </div>
 
-<!-- Mobile nav -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
     <div class="mobile-nav-item active"  onclick="showPage('dashboard')">    <span class="mn-icon">📊</span><span>Dashboard</span></div>
@@ -736,7 +562,6 @@
   </div>
 </nav>
 
-<!-- Investment position modal -->
 <div class="modal-overlay" id="invest-modal">
   <div class="modal">
     <div class="modal-title">📈 Cadastrar Posição</div>
@@ -744,100 +569,43 @@
       <div class="form-group"><label class="form-label">Nome</label><input type="text" class="form-input" id="inv-nome" placeholder="Ex: Tesouro Direto"></div>
       <div class="form-group"><label class="form-label">Tipo</label>
         <select class="form-select" id="inv-tipo">
-          <option>Renda Fixa</option><option>Renda Variável</option><option>FII</option>
-          <option>Criptomoeda</option><option>Poupança</option><option>CDB/LCI/LCA</option>
-          <option>Ações</option><option>Previdência</option><option>Outros</option>
+          <option>Renda Fixa</option><option>Renda Variável</option><option>FII</option><option>Criptomoeda</option><option>Poupança</option><option>CDB/LCI/LCA</option><option>Ações</option><option>Previdência</option><option>Outros</option>
         </select>
       </div>
       <div class="form-group"><label class="form-label">Valor Atual (R$)</label><input type="text" inputmode="decimal" class="form-input" id="inv-valor" placeholder="0,00"></div>
-      <div class="form-group"><label class="form-label">Titular</label>
-        <select class="form-select" id="inv-owner">
-          <option value="casal">Casal</option>
-          <option value="user1">Alice</option>
-          <option value="user2">Dudu</option>
-        </select>
-      </div>
+      <div class="form-group"><label class="form-label">Titular</label><select class="form-select" id="inv-owner"><option value="casal">Casal</option><option value="user1">Alice</option><option value="user2">Dudu</option></select></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-primary" onclick="saveInvestment()" style="flex:1">💾 Salvar</button>
-      <button class="btn-sm" onclick="closeInvestModal()" style="flex:1">Cancelar</button>
-    </div>
+    <div class="modal-actions"><button class="btn-primary" onclick="saveInvestment()" style="flex:1">💾 Salvar</button><button class="btn-sm" onclick="closeInvestModal()" style="flex:1">Cancelar</button></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script>
-// ── CHARTS ───────────────────────────────────────────────────────────
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-function drawPieChart(canvasId, labels, values, colors) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width = canvas.offsetWidth || 260;
-  const H = canvas.height = 180;
-  ctx.clearRect(0,0,W,H);
-  const total = values.reduce((a,b)=>a+b,0);
-  if (!total) {
-    ctx.fillStyle='#2C3048'; ctx.beginPath(); ctx.arc(W/2,H/2,H/2-8,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#7B80A0'; ctx.font='11px Inter'; ctx.textAlign='center';
-    ctx.fillText('Sem dados',W/2,H/2+4); return;
-  }
-  let start=-Math.PI/2;
-  const cx=W/2, cy=H/2, r=Math.min(W,H)/2-8;
-  values.forEach((v,i)=>{
-    const s=(v/total)*Math.PI*2;
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+s); ctx.closePath();
-    ctx.fillStyle=colors[i%colors.length]; ctx.fill();
-    ctx.strokeStyle='#0F1117'; ctx.lineWidth=2; ctx.stroke();
-    start+=s;
-  });
-  ctx.beginPath(); ctx.arc(cx,cy,r*0.5,0,Math.PI*2); ctx.fillStyle='#1A1D27'; ctx.fill();
-}
+// ⚠️ COLE AS SUAS INFORMAÇÕES DO FIREBASE AQUI:
+const firebaseConfig = {
+  apiKey: "CONFIGURE_AQUI_SEU_FIREBASE",
+  authDomain: "CONFIGURE_AQUI_SEU_FIREBASE",
+  projectId: "CONFIGURE_AQUI_SEU_FIREBASE",
+  storageBucket: "CONFIGURE_AQUI_SEU_FIREBASE",
+  messagingSenderId: "CONFIGURE_AQUI_SEU_FIREBASE",
+  appId: "CONFIGURE_AQUI_SEU_FIREBASE"
+};
 
-function drawBarChart(canvasId, labels, datasets) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width = canvas.offsetWidth || 260;
-  const H = canvas.height = 180;
-  ctx.clearRect(0,0,W,H);
-  const pad={top:16,right:10,bottom:36,left:46};
-  const cW=W-pad.left-pad.right, cH=H-pad.top-pad.bottom;
-  const allVals=datasets.flatMap(d=>d.data);
-  const maxV=Math.max(...allVals,1);
-  const n=labels.length, dsC=datasets.length;
-  const groupW=cW/Math.max(n,1), barW=Math.min(groupW/(dsC+1),22), gap=(groupW-barW*dsC)/2;
-  for(let i=0;i<=4;i++){
-    const y=pad.top+cH-(i/4)*cH;
-    ctx.strokeStyle='#2E3250'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cW,y); ctx.stroke();
-    ctx.fillStyle='#7B80A0'; ctx.font='9px Inter'; ctx.textAlign='right';
-    ctx.fillText(fmtK((i/4)*maxV),pad.left-3,y+3);
-  }
-  datasets.forEach((ds,di)=>{
-    ds.data.forEach((v,i)=>{
-      const bH=(v/maxV)*cH, x=pad.left+i*groupW+gap+di*barW, y=pad.top+cH-bH;
-      ctx.fillStyle=ds.color; ctx.beginPath();
-      ctx.roundRect?ctx.roundRect(x,y,barW-1,bH,[3,3,0,0]):ctx.rect(x,y,barW-1,bH);
-      ctx.fill();
-    });
-  });
-  ctx.fillStyle='#7B80A0'; ctx.font='8px Inter'; ctx.textAlign='center';
-  labels.forEach((l,i)=>ctx.fillText(l,pad.left+i*groupW+groupW/2,H-pad.bottom+12));
-  if(datasets.length>1){
-    let lx=pad.left;
-    datasets.forEach(ds=>{
-      ctx.fillStyle=ds.color; ctx.fillRect(lx,H-8,7,7);
-      ctx.fillStyle='#7B80A0'; ctx.font='8px Inter'; ctx.textAlign='left';
-      ctx.fillText(ds.label,lx+10,H-2); lx+=ctx.measureText(ds.label).width+22;
-    });
-  }
-}
+// Inicializa o Firebase e Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-function fmtK(v){ return v>=1000?'R$'+(v/1000).toFixed(1)+'k':'R$'+v.toFixed(0); }
+// Documento único na nuvem onde guardaremos tudo do casal
+const casalDocRef = doc(db, "financas", "casal_shared_data");
 
-// ── DATA ─────────────────────────────────────────────────────────────
+// Variaveis de Estado Local do App
+let transactions = [];
+let investments  = [];
+let categories   = [];
 
 const DEFAULT_CATEGORIES = [
   {id:'supermercado',name:'Supermercado',icon:'🛒'},{id:'hortifruti',name:'Hortifruti',icon:'🥦'},
@@ -847,494 +615,52 @@ const DEFAULT_CATEGORIES = [
   {id:'ferias',name:'Férias',icon:'🏖️'},{id:'transporte',name:'Transporte',icon:'🚗'},
   {id:'viagem',name:'Viagem',icon:'✈️'},{id:'restaurante',name:'Restaurante',icon:'🍽️'},
   {id:'beleza',name:'Beleza',icon:'💅'},{id:'daiki',name:'Daiki',icon:'🐾'},
-  {id:'roupa',name:'Roupa',icon:'👗'},{id:'empresa',name:'Empresa',icon:'🗃️'},{id:'outros',name:'Outros',icon:'📦'},
+  {id:'roupa',name:'Roupa',icon:'👗'},{id:'outros',name:'Outros',icon:'📦'},
 ];
 
 const CHART_COLORS = [
   '#6C63FF','#22C55E','#F59E0B','#F43F5E','#06B6D4',
-  '#A855F7','#F97316','#84CC16','#EC4899','#14B8A6',
-  '#EAB308','#3B82F6','#8B5CF6','#10B981','#EF4444','#64748B'
+  '#A855F7','#F97316','#84CC16','#EC4899','#14B8A6'
 ];
 
 const PAY_LABELS = { dinheiro:'💵 Dinheiro', pix:'⚡ PIX', credito:'💳 Crédito', '':'—' };
 const PAY_CLASS  = { dinheiro:'dinheiro', pix:'pix', credito:'credito' };
-
-function load(k,d){ try{ return JSON.parse(localStorage.getItem(k))??d; }catch{ return d; } }
-function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
-
-let transactions = load('fin_transactions',[]);
-let investments  = load('fin_investments',[]);
-let categories   = load('fin_categories', DEFAULT_CATEGORIES);
 const SETTINGS   = { user1:'Alice', user2:'Dudu' };
 
-// ── HELPERS ──────────────────────────────────────────────────────────
-
-function fmt(v){
-  return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-
-function parseVal(str){
-  if(!str) return NaN;
-  const s = String(str).trim().replace(/\s/g,'').replace(',','.');
-  return parseFloat(s);
-}
-
-function catById(id){ return categories.find(c=>c.id===id)||{name:id,icon:'📦'}; }
-
-function userName(uid){
-  if(uid==='casal') return '👥 Casal';
-  if(uid==='user1') return SETTINGS.user1;
-  if(uid==='user2') return SETTINGS.user2;
-  return uid;
-}
-
-function monthName(m){
-  return ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][m-1];
-}
-
-function getYears(){
-  const ys=new Set(transactions.map(t=>t.date?.split('-')[0]));
-  ys.add(String(new Date().getFullYear()));
-  return [...ys].sort().reverse();
-}
-
-function populateMonthYear(selM, selY, curM, curY){
-  const em=document.getElementById(selM), ey=document.getElementById(selY);
-  if(!em||!ey) return;
-  const months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-                'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  em.innerHTML=months.map((m,i)=>`<option value="${i+1}" ${i+1==curM?'selected':''}>${m}</option>`).join('');
-  ey.innerHTML=getYears().map(y=>`<option ${y==curY?'selected':''}>${y}</option>`).join('');
-}
-
-function filterTx(month, year, user, tipo, cat, search, pay){
-  return transactions.filter(t=>{
-    if(!t.date) return false;
-    const [ty,tm]=t.date.split('-').map(Number);
-    if(month && tm!==month) return false;
-    if(year  && ty!==year)  return false;
-    if(user  && user!=='todos' && t.user!==user) return false;
-    if(tipo  && tipo!=='todos' && t.tipo!==tipo) return false;
-    if(cat   && cat!=='todas'  && t.cat!==cat)   return false;
-    if(pay   && pay!=='todos'  && t.pagamento!==pay) return false;
-    if(search && !t.desc.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
-}
-
-// ── TOAST / NAV ───────────────────────────────────────────────────────
-
-function showToast(msg, type='success'){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className=`toast ${type} show`;
-  setTimeout(()=>t.className='toast',2500);
-}
-
-const PAGE_NAMES=['dashboard','ganhos','gastos','investimentos','configuracoes'];
-const PAGE_TITLES={
-  dashboard:'📊 Dashboard', ganhos:'💚 Ganhos', gastos:'💸 Gastos',
-  investimentos:'📈 Investimentos', configuracoes:'⚙️ Configurações'
-};
-
-function showPage(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.querySelectorAll('.mobile-nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  const idx=PAGE_NAMES.indexOf(name);
-  document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
-  document.querySelectorAll('.mobile-nav-item')[idx]?.classList.add('active');
-  document.getElementById('mobile-page-title').textContent=PAGE_TITLES[name]||'';
-  const now=new Date();
-  const m=now.getMonth()+1, y=now.getFullYear();
-  if(name==='dashboard') renderDashboard();
-  if(name==='ganhos'){ populateMonthYear('g-month','g-year',m,y); renderGanhos(); }
-  if(name==='gastos'){ populateMonthYear('t-month','t-year',m,y); renderGastos(); populateCatSelect(); }
-  if(name==='investimentos') renderInvestments();
-  if(name==='configuracoes') renderSettings();
-}
-
-// ── PAYMENT SELECTOR ─────────────────────────────────────────────────
-
-let selectedPayGanho = 'dinheiro';
-let selectedPayGasto = 'dinheiro';
-
-function selectPay(ctx, pay, btn){
-  if(ctx==='ganho'){
-    selectedPayGanho=pay;
-    document.getElementById('g-pagamento').value=pay;
-    btn.closest('.pay-selector').querySelectorAll('.pay-btn').forEach(b=>b.className='pay-btn');
+// 🔄 SINCRONIZAÇÃO EM TEMPO REAL COM O FIRESTORE
+onSnapshot(casalDocRef, (docSnap) => {
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    transactions = data.transactions || [];
+    investments  = data.investments || [];
+    categories   = data.categories || [...DEFAULT_CATEGORIES];
   } else {
-    selectedPayGasto=pay;
-    document.getElementById('f-pagamento').value=pay;
-    btn.closest('.pay-selector').querySelectorAll('.pay-btn').forEach(b=>b.className='pay-btn');
-    const pr=document.getElementById('parcelas-row');
-    if(pr) pr.classList.toggle('show', pay==='credito');
-    if(pay!=='credito') document.getElementById('f-parcelas').value='1';
+    // Se for o primeiro acesso absoluto, cria a estrutura inicial
+    transactions = [];
+    investments  = [];
+    categories   = [...DEFAULT_CATEGORIES];
+    setDoc(casalDocRef, { transactions, investments, categories });
   }
-  btn.className=`pay-btn active-${pay}`;
-}
-
-function payBadge(pay){
-  const cls=PAY_CLASS[pay]||'', lbl=PAY_LABELS[pay]||'—';
-  return `<span class="pay-badge ${cls}">${lbl}</span>`;
-}
-
-// ── VALOR INPUT ───────────────────────────────────────────────────────
-function setupValorInputs(){
-  document.querySelectorAll('input[inputmode="decimal"]').forEach(el=>{
-    el.addEventListener('keypress', e=>{
-      const c=e.key;
-      if(!/[\d,.]/.test(c) && c!=='Backspace') return;
-      if((c===','||c==='.') && (el.value.includes(',')||el.value.includes('.'))) e.preventDefault();
-    });
-  });
-}
-
-// ── ADD GANHO ─────────────────────────────────────────────────────────
-
-function addGanho(){
-  const date  = document.getElementById('g-data').value;
-  const valor = parseVal(document.getElementById('g-valor').value);
-  const desc  = document.getElementById('g-desc').value.trim();
-  const user  = document.getElementById('g-user').value;
-  const pag   = selectedPayGanho;
-  if(!date)         return showToast('Informe a data!','error');
-  if(isNaN(valor)||valor<=0) return showToast('Informe um valor válido!','error');
-  if(!desc)         return showToast('Informe uma descrição!','error');
-  transactions.push({id:Date.now(),date,desc,tipo:'ganho',cat:'—',user,valor,pagamento:pag,parcela:1,totalParcelas:1});
-  save('fin_transactions',transactions);
-  document.getElementById('g-desc').value='';
-  document.getElementById('g-valor').value='';
-  showToast('Ganho registrado! 💚');
-  renderGanhos(); renderDashboard();
-}
-
-// ── ADD GASTO ─────────────────────────────────────────────────────────
-
-function addGasto(){
-  const date    = document.getElementById('f-data').value;
-  const valor   = parseVal(document.getElementById('f-valor').value);
-  const desc    = document.getElementById('f-desc').value.trim();
-  const cat     = document.getElementById('f-cat').value;
-  const user    = document.getElementById('f-user').value;
-  const pag     = selectedPayGasto;
-  const parcelas= pag==='credito' ? (parseInt(document.getElementById('f-parcelas').value)||1) : 1;
-  if(!date)         return showToast('Informe a data!','error');
-  if(isNaN(valor)||valor<=0) return showToast('Informe um valor válido!','error');
-  if(!desc)         return showToast('Informe uma descrição!','error');
-  const baseId=Date.now();
-  const [y,m,d]=date.split('-').map(Number);
-  for(let p=0;p<parcelas;p++){
-    const pd=new Date(y,m-1+p,d);
-    transactions.push({
-      id:baseId+p,
-      date:pd.toISOString().split('T')[0],
-      desc:parcelas>1?`${desc} (${p+1}/${parcelas})`:desc,
-      tipo:'gasto', cat, user,
-      valor:parseFloat((valor/parcelas).toFixed(2)),
-      pagamento:pag, parcela:p+1, totalParcelas:parcelas
-    });
-  }
-  save('fin_transactions',transactions);
-  document.getElementById('f-desc').value='';
-  document.getElementById('f-valor').value='';
-  document.getElementById('f-parcelas').value='1';
-  showToast(parcelas>1?`${parcelas} parcelas adicionadas! ✅`:'Gasto registrado! ✅');
-  renderGastos(); renderDashboard();
-}
-
-// ── ADD APORTE ────────────────────────────────────────────────────────
-
-function addInvestTx(){
-  const date  = document.getElementById('i-data').value;
-  const valor = parseVal(document.getElementById('i-valor').value);
-  const desc  = document.getElementById('i-desc').value.trim();
-  const user  = document.getElementById('i-user').value;
-  if(!date)         return showToast('Informe a data!','error');
-  if(isNaN(valor)||valor<=0) return showToast('Informe um valor válido!','error');
-  if(!desc)         return showToast('Informe uma descrição!','error');
-  transactions.push({id:Date.now(),date,desc,tipo:'investimento',cat:'—',user,valor,pagamento:'',parcela:1,totalParcelas:1});
-  save('fin_transactions',transactions);
-  document.getElementById('i-desc').value='';
-  document.getElementById('i-valor').value='';
-  showToast('Aporte registrado! 🟡');
-  renderInvestments(); renderDashboard();
-}
-
-function deleteTransaction(id){
-  transactions=transactions.filter(t=>t.id!==id);
-  save('fin_transactions',transactions);
-  renderGanhos(); renderGastos(); renderDashboard();
-  showToast('Removido.','error');
-}
-
-// ── RENDER GANHOS ─────────────────────────────────────────────────────
-
-function renderGanhos(){
-  const now=new Date();
-  const m=parseInt(document.getElementById('g-month')?.value)||now.getMonth()+1;
-  const y=parseInt(document.getElementById('g-year')?.value)||now.getFullYear();
-  const user  =document.getElementById('g-user-f')?.value||'todos';
-  const pay   =document.getElementById('g-pay-f')?.value||'todos';
-  const search=document.getElementById('g-search')?.value||'';
-  const rows=filterTx(m,y,user,'ganho',null,search,pay).sort((a,b)=>b.date.localeCompare(a.date));
-  const tb=document.getElementById('g-body');
-  if(!tb) return;
-  if(!rows.length){ tb.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">💚</div><div class="empty-text">Nenhum ganho encontrado</div></div></td></tr>`; return; }
-  tb.innerHTML=rows.map(t=>`<tr>
-    <td class="col-date">${t.date.split('-').reverse().join('/')}</td>
-    <td class="col-desc" style="white-space:normal;word-break:break-word">${t.desc}</td>
-    <td class="col-pay">${payBadge(t.pagamento)}</td>
-    <td class="col-val amount-pos">+ ${fmt(t.valor)}</td>
-    <td class="col-who user-badge">${userName(t.user)}</td>
-    <td class="col-del"><button class="del-btn" onclick="deleteTransaction(${t.id})">🗑️</button></td>
-  </tr>`).join('');
-}
-
-// ── RENDER GASTOS ─────────────────────────────────────────────────────
-
-function renderGastos(){
-  const now=new Date();
-  const m=parseInt(document.getElementById('t-month')?.value)||now.getMonth()+1;
-  const y=parseInt(document.getElementById('t-year')?.value)||now.getFullYear();
-  const user  =document.getElementById('t-user-f')?.value||'todos';
-  const cat   =document.getElementById('t-cat')?.value||'todas';
-  const pay   =document.getElementById('t-pay')?.value||'todos';
-  const search=document.getElementById('t-search')?.value||'';
-  const rows=filterTx(m,y,user,'gasto',cat,search,pay).sort((a,b)=>b.date.localeCompare(a.date));
-  const tb=document.getElementById('t-body');
-  if(!tb) return;
-  if(!rows.length){ tb.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Nenhuma transação encontrada</div></div></td></tr>`; return; }
-  tb.innerHTML=rows.map(t=>{
-    const c=catById(t.cat);
-    const parc=t.totalParcelas>1?`<span style="font-size:10px;color:var(--muted)">${t.parcela}/${t.totalParcelas}</span>`:'—';
-    const catB=t.cat&&t.cat!=='—'?`<span class="cat-badge">${c.icon} ${c.name}</span>`:'—';
-    return `<tr>
-      <td class="col-date">${t.date.split('-').reverse().join('/')}</td>
-      <td class="col-desc" style="white-space:normal;word-break:break-word">${t.desc}</td>
-      <td class="col-cat">${catB}</td>
-      <td class="col-type"><span class="tag tag-gasto">gasto</span></td>
-      <td class="col-parc">${parc}</td>
-      <td class="col-pay">${payBadge(t.pagamento)}</td>
-      <td class="col-val amount-neg">- ${fmt(t.valor)}</td>
-      <td class="col-who user-badge">${userName(t.user)}</td>
-      <td class="col-del"><button class="del-btn" onclick="deleteTransaction(${t.id})">🗑️</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ── RENDER DASHBOARD ─────────────────────────────────────────────────
-
-function renderDashboard(){
-  const now=new Date();
-  const m=parseInt(document.getElementById('dash-month')?.value)||now.getMonth()+1;
-  const y=parseInt(document.getElementById('dash-year')?.value)||now.getFullYear();
-  const user=document.getElementById('dash-user')?.value||'todos';
-  const uF=user==='todos'?null:user;
-  const all=filterTx(m,y,uF,null,null,null,null);
-  const ganhos=all.filter(t=>t.tipo==='ganho').reduce((a,t)=>a+t.valor,0);
-  const gastos=all.filter(t=>t.tipo==='gasto').reduce((a,t)=>a+t.valor,0);
-  const invest=all.filter(t=>t.tipo==='investimento').reduce((a,t)=>a+t.valor,0);
-  const saldo=ganhos-gastos-invest;
-  document.getElementById('card-ganhos').textContent=fmt(ganhos);
-  document.getElementById('card-gastos').textContent=fmt(gastos);
-  document.getElementById('card-invest').textContent=fmt(invest);
-  document.getElementById('card-saldo').textContent=fmt(saldo);
-  document.getElementById('card-saldo').className='card-value '+(saldo>=0?'green':'red');
-  ['ganhos','gastos','invest'].forEach((k,i)=>{
-    const n=all.filter(t=>t.tipo===['ganho','gasto','investimento'][i]).length;
-    document.getElementById(`card-${k}-n`).textContent=`${n} lançamento${n!==1?'s':''}`;
-  });
-  const pct=ganhos>0?((saldo/ganhos)*100).toFixed(1):'—';
-  document.getElementById('card-saldo-pct').textContent=ganhos>0?`${pct}% da renda guardado`:'Sem ganhos no período';
-  const mns=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('dash-period').textContent=`${mns[m-1]} ${y} · ${userName(user==='todos'?'casal':user)}`;
-
-  // Pay breakdown
-  const dG=all.filter(t=>t.tipo==='gasto'&&t.pagamento==='dinheiro').reduce((a,t)=>a+t.valor,0);
-  const pG=all.filter(t=>t.tipo==='gasto'&&t.pagamento==='pix').reduce((a,t)=>a+t.valor,0);
-  const cG=all.filter(t=>t.tipo==='gasto'&&t.pagamento==='credito').reduce((a,t)=>a+t.valor,0);
-  const tP=dG+pG+cG||1;
-  document.getElementById('pay-breakdown').innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px">
-      <div style="background:var(--surface2);border-radius:10px;padding:12px;border-left:3px solid var(--green)">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">💵 Dinheiro</div>
-        <div style="font-weight:800;color:var(--green);font-size:16px">${fmt(dG)}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">${((dG/tP)*100).toFixed(0)}%</div>
-      </div>
-      <div style="background:var(--surface2);border-radius:10px;padding:12px;border-left:3px solid var(--cyan)">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">⚡ PIX</div>
-        <div style="font-weight:800;color:var(--cyan);font-size:16px">${fmt(pG)}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">${((pG/tP)*100).toFixed(0)}%</div>
-      </div>
-      <div style="background:var(--surface2);border-radius:10px;padding:12px;border-left:3px solid var(--accent)">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">💳 Crédito</div>
-        <div style="font-weight:800;color:var(--accent2);font-size:16px">${fmt(cG)}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">${((cG/tP)*100).toFixed(0)}%</div>
-      </div>
-    </div>`;
-
-  setTimeout(()=>{
-    const gMap={};
-    all.filter(t=>t.tipo==='gasto').forEach(t=>{gMap[t.cat]=(gMap[t.cat]||0)+t.valor;});
-    const sorted=Object.entries(gMap).sort((a,b)=>b[1]-a[1]);
-    drawPieChart('chart-cat',sorted.map(([id])=>catById(id).name),sorted.map(([,v])=>v),CHART_COLORS);
-    document.getElementById('legend-cat').innerHTML=sorted.map(([id,v],i)=>{
-      const c=catById(id);
-      return `<div class="legend-item"><div class="legend-dot" style="background:${CHART_COLORS[i%CHART_COLORS.length]}"></div>${c.icon} ${c.name}: ${fmt(v)}</div>`;
-    }).join('');
-
-    const months=[];
-    for(let i=5;i>=0;i--){ const d=new Date(y,m-1-i,1); months.push({m:d.getMonth()+1,y:d.getFullYear(),l:monthName(d.getMonth()+1)}); }
-    drawBarChart('chart-evo',months.map(x=>x.l),[
-      {label:'Ganhos', data:months.map(x=>filterTx(x.m,x.y,uF,'ganho',null,null,null).reduce((a,t)=>a+t.valor,0)), color:'#22C55E'},
-      {label:'Gastos', data:months.map(x=>filterTx(x.m,x.y,uF,'gasto',null,null,null).reduce((a,t)=>a+t.valor,0)), color:'#F43F5E'},
-      {label:'Invest.',data:months.map(x=>filterTx(x.m,x.y,uF,'investimento',null,null,null).reduce((a,t)=>a+t.valor,0)),color:'#F59E0B'},
-    ]);
-
-    const topEl=document.getElementById('top-cats');
-    if(!sorted.length){ topEl.innerHTML='<div class="empty-state" style="padding:20px"><div class="empty-icon">📊</div><div class="empty-text">Sem gastos no período</div></div>'; }
-    else {
-      const mx=sorted[0][1];
-      topEl.innerHTML=sorted.slice(0,8).map(([id,v],i)=>{
-        const c=catById(id), pct=((v/mx)*100).toFixed(0);
-        return `<div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px"><span>${c.icon} ${c.name}</span><span style="color:var(--red);font-weight:700">${fmt(v)}</span></div>
-          <div style="background:var(--surface2);border-radius:4px;height:5px"><div style="background:${CHART_COLORS[i%CHART_COLORS.length]};width:${pct}%;height:100%;border-radius:4px;transition:width .4s"></div></div>
-        </div>`;
-      }).join('');
-    }
-  },50);
-
-  const recent=[...transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
-  const rb=document.getElementById('dash-recent-body');
-  if(!rb) return;
-  if(!recent.length){ rb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">Nenhuma transação ainda</div></div></td></tr>`; return; }
-  rb.innerHTML=recent.map(t=>{
-    const c=catById(t.cat);
-    const amtC=t.tipo==='ganho'?'amount-pos':t.tipo==='investimento'?'amount-inv':'amount-neg';
-    const sign=t.tipo==='ganho'?'+':t.tipo==='investimento'?'↗':'-';
-    const catB=t.cat&&t.cat!=='—'?`<span class="cat-badge">${c.icon} ${c.name}</span>`:'—';
-    return `<tr>
-      <td class="col-date">${t.date.split('-').reverse().join('/')}</td>
-      <td class="col-desc" style="white-space:normal;word-break:break-word">${t.desc}</td>
-      <td class="col-cat">${catB}</td>
-      <td class="col-type"><span class="tag tag-${t.tipo}">${t.tipo}</span></td>
-      <td class="col-pay">${t.pagamento?payBadge(t.pagamento):'—'}</td>
-      <td class="col-val ${amtC}">${sign} ${fmt(t.valor)}</td>
-      <td class="col-who user-badge">${userName(t.user)}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── INVESTMENTS ───────────────────────────────────────────────────────
-
-let editInvestId=null;
-
-function openInvestModal(id){
-  editInvestId=id||null;
-  if(id){
-    const inv=investments.find(i=>i.id===id);
-    if(inv){ document.getElementById('inv-nome').value=inv.nome; document.getElementById('inv-tipo').value=inv.tipo; document.getElementById('inv-valor').value=String(inv.valor).replace('.',','); document.getElementById('inv-owner').value=inv.owner; }
-  } else { document.getElementById('inv-nome').value=''; document.getElementById('inv-valor').value=''; }
-  document.getElementById('invest-modal').classList.add('open');
-}
-function closeInvestModal(){ document.getElementById('invest-modal').classList.remove('open'); }
-
-function saveInvestment(){
-  const nome=document.getElementById('inv-nome').value.trim();
-  const tipo=document.getElementById('inv-tipo').value;
-  const valor=parseVal(document.getElementById('inv-valor').value);
-  const owner=document.getElementById('inv-owner').value;
-  if(!nome) return showToast('Informe o nome!','error');
-  if(isNaN(valor)||valor<0) return showToast('Informe um valor!','error');
-  if(editInvestId){ const idx=investments.findIndex(i=>i.id===editInvestId); if(idx>=0)investments[idx]={...investments[idx],nome,tipo,valor,owner}; }
-  else investments.push({id:Date.now(),nome,tipo,valor,owner,date:new Date().toISOString().split('T')[0]});
-  save('fin_investments',investments); closeInvestModal(); renderInvestments(); showToast('Posição salva! 📈');
-}
-
-function deleteInvestment(id){ investments=investments.filter(i=>i.id!==id); save('fin_investments',investments); renderInvestments(); showToast('Posição removida.','error'); }
-
-function renderInvestments(){
-  document.getElementById('inv-total').textContent=fmt(investments.reduce((a,i)=>a+i.valor,0));
-  document.getElementById('inv-count').textContent=investments.length;
-  const el=document.getElementById('invest-list');
-  if(!el) return;
-  if(!investments.length){ el.innerHTML=`<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">Nenhuma posição cadastrada.</div></div>`; return; }
-  el.innerHTML=investments.map(inv=>`
-    <div class="invest-card">
-      <div class="invest-card-name">${inv.nome}</div>
-      <div class="invest-card-type">${inv.tipo}</div>
-      <div class="invest-card-value">${fmt(inv.valor)}</div>
-      <div class="invest-card-owner">👤 ${userName(inv.owner)}</div>
-      <div class="invest-card-actions">
-        <button class="btn-sm" onclick="openInvestModal(${inv.id})">✏️ Editar</button>
-        <button class="btn-sm danger" onclick="deleteInvestment(${inv.id})">🗑️ Remover</button>
-      </div>
-    </div>`).join('');
-}
-
-// ── SETTINGS ─────────────────────────────────────────────────────────
-
-function renderSettings(){
-  const el=document.getElementById('cat-list');
-  el.innerHTML=categories.map(c=>`
-    <div class="cat-item">${c.icon} ${c.name}
-      ${!DEFAULT_CATEGORIES.find(d=>d.id===c.id)?`<button class="cat-del" onclick="deleteCat('${c.id}')">✕</button>`:''}
-    </div>`).join('');
-}
-
-function addCategory(){
-  const val=document.getElementById('cfg-new-cat').value.trim();
-  if(!val) return showToast('Digite o nome!','error');
-  const id=val.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_');
-  if(categories.find(c=>c.id===id)) return showToast('Já existe!','error');
-  const match=val.match(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u);
-  const icon=match?match[0]:'📌';
-  const name=val.replace(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu,'').trim()||val;
-  categories.push({id,name,icon}); save('fin_categories',categories);
-  document.getElementById('cfg-new-cat').value='';
-  renderSettings(); populateCatSelect(); showToast('Categoria adicionada! ✅');
-}
-
-function deleteCat(id){ categories=categories.filter(c=>c.id!==id); save('fin_categories',categories); renderSettings(); populateCatSelect(); }
-
-function populateCatSelect(){
-  const sel=document.getElementById('f-cat');
-  if(sel) sel.innerHTML=categories.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-  const tCat=document.getElementById('t-cat');
-  if(tCat) tCat.innerHTML=`<option value="todas">Todas as categorias</option>`+categories.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-}
-
-function clearData(){
-  if(!confirm('Apagar TODOS os dados? Não há como desfazer.')) return;
-  transactions=[]; investments=[];
-  save('fin_transactions',[]); save('fin_investments',[]);
-  renderDashboard(); renderGanhos(); renderGastos(); renderInvestments();
-  showToast('Dados apagados.','error');
-}
-
-// ── INIT ─────────────────────────────────────────────────────────────
-
-function init(){
-  const now=new Date();
-  const m=now.getMonth()+1, y=now.getFullYear();
-  const today=now.toISOString().split('T')[0];
-  populateMonthYear('dash-month','dash-year',m,y);
-  populateMonthYear('t-month','t-year',m,y);
-  populateMonthYear('g-month','g-year',m,y);
-  populateCatSelect();
-  ['f-data','g-data','i-data'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=today; });
-  setupValorInputs();
-  renderDashboard();
-}
-
-window.addEventListener('load',init);
-window.addEventListener('resize',()=>{
-  if(document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+  
+  // Esconde o loading após o primeiro carregamento com sucesso
+  document.getElementById('loading-screen').style.opacity = 0;
+  setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 300);
+  
+  // Força a atualização visual de todas as abas
+  refreshUI();
+}, (error) => {
+  console.error("Erro na sincronização:", error);
+  showToast("Erro ao conectar com a nuvem!", "error");
 });
-document.getElementById('invest-modal').addEventListener('click',function(e){ if(e.target===this) closeInvestModal(); });
-</script>
-</body>
-</html>
+
+// Envia atualizações locais para a nuvem
+async function syncToCloud() {
+  try {
+    await setDoc(casalDocRef, { transactions, investments, categories }, { merge: true });
+  } catch (err) {
+    console.error("Erro ao salvar:", err);
+    showToast("Erro ao sincronizar dados!", "error");
+  }
+}
+
+// Globaliza as funções para manter
